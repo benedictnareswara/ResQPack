@@ -1,0 +1,1848 @@
+/* src/index.css — ResQPack
+   Near-monochrome, border-separated surfaces, colour reserved for real state.
+   Greys carry the UI; red means alarm and nothing else. */
+
+/* ===== FONTS (self-hosted, no third-party requests) ===== */
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("./assets/fonts/inter-variable.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "JetBrains Mono";
+  font-style: normal;
+  font-weight: 100 800;
+  font-display: swap;
+  src: url("./assets/fonts/jetbrains-mono-variable.woff2") format("woff2");
+}
+
+/* ===== RESET ===== */
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  /* Dark (default) — neutral, barely cool. No navy. */
+  --bg-primary: #08090a;
+  --bg-secondary: #0d0e10;
+  --bg-tertiary: #141516;
+  --bg-card: #101113;
+  --bg-card-hover: #16181a;
+  --bg-input: #141516;
+  --border-color: #1f2023;
+  --border-subtle: #17181a;
+
+  --text-primary: #f7f8f8;
+  --text-secondary: #8a8f98;
+  --text-muted: #62666d;
+
+  /* Interaction only — focus rings and selection. */
+  --accent: #5e6ad2;
+  --accent-dim: rgba(94, 106, 210, 0.14);
+
+  /* Semantic only. Never decorative. */
+  --accent-red: #eb5757;
+  --accent-red-dim: rgba(235, 87, 87, 0.13);
+  --accent-orange: #fc7840;
+  --accent-orange-dim: rgba(252, 120, 64, 0.13);
+  --accent-green: #4cb782;
+  --accent-green-dim: rgba(76, 183, 130, 0.13);
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.45);
+
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+
+  --text-xs: 11px;
+  --text-sm: 12px;
+  --text-base: 13px;
+  --text-lg: 15px;
+  --text-stat: 30px;
+  --tracking-tight: -0.011em;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+
+  --transition: 120ms ease;
+
+  /* Phone layout. --sheet-peek must stay numerically equal to MOBILE_SHEET_PEEK_PX in
+     app.jsx, which is what focusMapOnAlert pads the camera by. */
+  --mobile-bar-h: 56px;
+  /* Tall enough for the grabber, header, elapsed stat and the actions group — the four
+     things the peek state has to show without a drag. Measured, not guessed. */
+  --sheet-peek: 252px;
+
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+[data-theme="light"] {
+  --bg-primary: #ffffff;
+  --bg-secondary: #fbfbfb;
+  --bg-tertiary: #f4f5f6;
+  --bg-card: #ffffff;
+  --bg-card-hover: #f7f8f9;
+  --bg-input: #f4f5f6;
+  --border-color: #e4e5e7;
+  --border-subtle: #edeef0;
+
+  --text-primary: #16171a;
+  --text-secondary: #6b6f76;
+  --text-muted: #8a8f98;
+
+  --accent: #5e6ad2;
+  --accent-dim: rgba(94, 106, 210, 0.1);
+
+  --accent-red: #d93a3a;
+  --accent-red-dim: rgba(217, 58, 58, 0.09);
+  --accent-orange: #d96716;
+  --accent-orange-dim: rgba(217, 103, 22, 0.09);
+  --accent-green: #2f9e68;
+  --accent-green-dim: rgba(47, 158, 104, 0.09);
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.1);
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+}
+
+body {
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+button,
+input {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+
+.icon {
+  flex-shrink: 0;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+/* ===== LAYOUT ===== */
+.dashboard-root {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+  background: var(--bg-primary);
+}
+
+.main-content {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* ===== TOP NAV ===== */
+.top-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--space-4);
+  height: 48px;
+  min-height: 48px;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-subtle);
+  z-index: 100;
+}
+
+.top-nav-brand {
+  display: flex;
+  align-items: center;
+}
+
+.brand-title {
+  font-size: var(--text-base);
+  font-weight: 600;
+  letter-spacing: var(--tracking-tight);
+  color: var(--text-primary);
+}
+
+.top-nav-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.nav-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background var(--transition), color var(--transition);
+}
+
+.nav-btn:hover {
+  background: var(--bg-card-hover);
+  color: var(--text-primary);
+}
+
+.nav-btn.active {
+  color: var(--accent-orange);
+  background: var(--accent-orange-dim);
+}
+
+.nav-btn-wide {
+  width: auto;
+  height: 28px;
+  padding: 0 var(--space-3);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--text-primary);
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+}
+
+.nav-btn-wide:hover {
+  background: var(--bg-card-hover);
+}
+
+.connection-indicator {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 0 var(--space-2);
+  height: 28px;
+  font-size: var(--text-sm);
+  font-weight: 450;
+  color: var(--text-secondary);
+}
+
+.connection-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.connection-indicator.connected .connection-dot,
+.connection-dot.online {
+  background: var(--accent-green);
+}
+
+.connection-indicator.connecting .connection-dot {
+  background: var(--accent-orange);
+}
+
+.connection-indicator.disconnected .connection-dot {
+  background: var(--accent-red);
+}
+
+.connection-dot.offline {
+  background: var(--text-muted);
+}
+
+/* ===== LEFT SIDEBAR ===== */
+.left-sidebar {
+  width: 296px;
+  min-width: 296px;
+  background: var(--bg-secondary);
+  border-right: 1px solid var(--border-subtle);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.search-bar {
+  padding: var(--space-3);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.search-bar input {
+  width: 100%;
+  height: 30px;
+  padding: 0 var(--space-3);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+  background: var(--bg-input);
+  color: var(--text-primary);
+  font-size: var(--text-sm);
+  outline: none;
+  transition: border-color var(--transition);
+}
+
+.search-bar input::placeholder {
+  color: var(--text-muted);
+}
+
+.search-bar input:focus {
+  border-color: var(--accent);
+}
+
+.search-bar input::-webkit-search-cancel-button {
+  filter: grayscale(1) opacity(0.5);
+}
+
+/* ===== TABS ===== */
+.sidebar-tabs {
+  display: flex;
+  padding: 0 var(--space-3);
+  gap: var(--space-4);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.sidebar-tab {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  height: 34px;
+  border-bottom: 1px solid transparent;
+  margin-bottom: -1px;
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+  font-weight: 450;
+  transition: color var(--transition), border-color var(--transition);
+}
+
+.sidebar-tab:hover {
+  color: var(--text-primary);
+}
+
+.sidebar-tab.active {
+  color: var(--text-primary);
+  font-weight: 500;
+  border-bottom-color: var(--text-primary);
+}
+
+.tab-count {
+  font-size: var(--text-xs);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-muted);
+}
+
+.tab-count.critical {
+  color: var(--accent-red);
+}
+
+.sidebar-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-2) var(--space-3) var(--space-4);
+}
+
+/* ===== INCIDENT CARD ===== */
+.incident-card {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: var(--space-3);
+  margin-bottom: var(--space-2);
+  transition: background var(--transition), border-color var(--transition);
+}
+
+.incident-card:hover {
+  background: var(--bg-card-hover);
+}
+
+.incident-card.selected {
+  border-color: var(--accent);
+  background: var(--accent-dim);
+}
+
+.incident-card-top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+/* Time since impact leads the card. Tabular figures stop it jittering each second. */
+.incident-elapsed {
+  font-family: var(--font-mono);
+  font-size: var(--text-lg);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: var(--tracking-tight);
+  color: var(--text-primary);
+}
+
+.incident-elapsed.warn {
+  color: var(--accent-orange);
+}
+
+.incident-elapsed.critical {
+  color: var(--accent-red);
+}
+
+.incident-badge {
+  font-size: var(--text-xs);
+  font-weight: 500;
+  color: var(--accent-red);
+}
+
+.incident-device-id {
+  margin-top: 2px;
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  overflow-wrap: anywhere;
+}
+
+.incident-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1);
+  margin-top: var(--space-2);
+}
+
+.meta-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 1px var(--space-2);
+  border-radius: var(--radius-sm);
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  font-size: var(--text-xs);
+  font-weight: 450;
+}
+
+.incident-card.selected .meta-chip {
+  background: var(--bg-tertiary);
+}
+
+.meta-chip.warn {
+  background: var(--accent-orange-dim);
+  color: var(--accent-orange);
+}
+
+.meta-chip.muted {
+  background: transparent;
+  border: 1px solid var(--border-color);
+  color: var(--text-muted);
+}
+
+/* ===== DEVICE ROSTER ===== */
+.device-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  margin-bottom: var(--space-2);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  background: var(--bg-card);
+}
+
+.device-row-info {
+  min-width: 0;
+}
+
+.device-row-id {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  color: var(--text-primary);
+  overflow-wrap: anywhere;
+}
+
+.device-row-meta {
+  margin-top: 2px;
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+
+/* ===== HISTORY ===== */
+.history-card {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  margin-bottom: var(--space-2);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  background: var(--bg-card);
+  transition: background var(--transition);
+}
+
+.history-card:hover {
+  background: var(--bg-card-hover);
+}
+
+.history-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.history-dot.crash {
+  background: var(--accent-red);
+}
+
+.history-dot.resolved {
+  background: var(--accent-green);
+}
+
+.history-card-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.history-card-device {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  color: var(--text-primary);
+  overflow-wrap: anywhere;
+}
+
+.history-card-time {
+  margin-top: 2px;
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+
+.history-card-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-shrink: 0;
+}
+
+.history-badge {
+  font-size: var(--text-xs);
+  color: var(--text-secondary);
+}
+
+.history-badge.crash-confirmed {
+  color: var(--accent-red);
+}
+
+.history-badge.resolved {
+  color: var(--accent-green);
+}
+
+.history-map-btn {
+  padding: 2px var(--space-2);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  font-size: var(--text-xs);
+  transition: background var(--transition), color var(--transition);
+}
+
+.history-map-btn:hover {
+  background: var(--bg-card-hover);
+  color: var(--text-primary);
+}
+
+/* ===== EMPTY STATES ===== */
+.empty-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-6) var(--space-5);
+  text-align: center;
+}
+
+.empty-panel.tall {
+  flex: 1;
+}
+
+.empty-panel h4 {
+  font-size: var(--text-base);
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: var(--space-1);
+}
+
+.empty-panel p {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  max-width: 32ch;
+  line-height: 1.5;
+}
+
+/* ===== CENTER / MAP ===== */
+.center-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.map-status-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.map-status-left,
+.map-status-right {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.status-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 0 var(--space-2);
+  height: 24px;
+  border-radius: var(--radius-sm);
+  font-size: var(--text-sm);
+  font-weight: 450;
+  color: var(--text-secondary);
+  background: var(--bg-tertiary);
+}
+
+.status-chip.crash {
+  color: var(--accent-red);
+  background: var(--accent-red-dim);
+}
+
+.status-chip.idle {
+  color: var(--accent-green);
+  background: var(--accent-green-dim);
+}
+
+.status-chip.subtle {
+  color: var(--text-secondary);
+}
+
+.coord-display {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-secondary);
+}
+
+.copy-btn {
+  height: 24px;
+  padding: 0 var(--space-2);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  font-size: var(--text-xs);
+  transition: background var(--transition), color var(--transition);
+}
+
+.copy-btn:hover {
+  background: var(--bg-card-hover);
+  color: var(--text-primary);
+}
+
+.copy-btn.copied {
+  color: var(--accent-green);
+  border-color: var(--accent-green);
+}
+
+.map-container {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  /* Guarantees a box for #map to fill even when the ancestor chain is auto-height
+     (the <=900px layout), so the map can never collapse to nothing. */
+  min-height: 320px;
+}
+
+/* Absolutely positioned rather than height: 100%. Below 900px the whole column
+   (.dashboard-root -> .main-content -> .center-panel) switches to auto height, so
+   .map-container's height comes from flex distribution rather than a specified
+   length — a percentage height has nothing definite to resolve against and collapses
+   to 0. Insetting against the parent's used box sizes correctly in both layouts. */
+.map-container #map {
+  position: absolute;
+  inset: 0;
+  background: var(--bg-primary);
+}
+
+.map-fit-btn {
+  position: absolute;
+  top: 84px;
+  right: var(--space-3);
+  z-index: 500;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+  transition: color var(--transition);
+}
+
+.map-fit-btn:hover {
+  color: var(--text-primary);
+}
+
+.map-legend {
+  position: absolute;
+  bottom: var(--space-3);
+  left: var(--space-3);
+  z-index: 500;
+  padding: var(--space-3);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  background: var(--bg-secondary);
+}
+
+.map-legend-title {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  margin-bottom: var(--space-2);
+}
+
+.map-legend-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-xs);
+  color: var(--text-secondary);
+}
+
+.map-legend-item + .map-legend-item {
+  margin-top: var(--space-1);
+}
+
+.legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.legend-dot.live {
+  background: var(--accent-red);
+}
+
+.legend-dot.live.unlocked {
+  background: transparent;
+  border: 1px dashed var(--accent-red);
+}
+
+.legend-dot.history {
+  background: var(--accent-orange);
+}
+
+.legend-dot.resolved {
+  background: var(--accent-green);
+}
+
+/* ===== MAP MARKERS ===== */
+.custom-marker {
+  background: transparent;
+  border: 0;
+}
+
+.marker-live,
+.marker-history,
+.marker-resolved {
+  width: 12px;
+  height: 12px;
+  margin: 4px;
+  border-radius: 50%;
+  box-shadow: 0 0 0 2px var(--bg-primary);
+}
+
+.marker-live {
+  background: var(--accent-red);
+  position: relative;
+}
+
+/* Halo on every live marker. Only .map-container.alerting animates it, so the static form
+   is still a visible red ring — shape carries the meaning when motion is unavailable. */
+.marker-ring {
+  position: absolute;
+  inset: -6px;
+  border: 2px solid var(--accent-red);
+  border-radius: 50%;
+  opacity: 0.55;
+}
+
+/* The halo is an alarm cue, not a marker style: a historical or resolved pin is not
+   screaming for attention. */
+.marker-history .marker-ring,
+.marker-resolved .marker-ring {
+  display: none;
+}
+
+.map-container.alerting .marker-ring {
+  animation: marker-ping 1.4s ease-out infinite;
+}
+
+@keyframes marker-ping {
+  0% {
+    transform: scale(1);
+    opacity: 0.7;
+  }
+  70% {
+    transform: scale(2.2);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 0.7;
+  }
+}
+
+/* No satellite fix: hollow and dashed, so an approximate pin is distinguishable by
+   shape and not colour alone. */
+.marker-live.unlocked {
+  background: transparent;
+  border: 2px dashed var(--accent-red);
+  box-shadow: none;
+}
+
+.marker-history {
+  background: var(--accent-orange);
+}
+
+.marker-resolved {
+  background: var(--accent-green);
+}
+
+/* ===== LEAFLET CHROME ===== */
+.leaflet-container {
+  background: var(--bg-primary);
+  font-family: var(--font-sans);
+}
+
+.leaflet-bar a,
+.leaflet-bar a:hover {
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+  border-bottom-color: var(--border-color);
+}
+
+.leaflet-bar a:hover {
+  color: var(--text-primary);
+}
+
+.leaflet-bar {
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  box-shadow: none;
+}
+
+.leaflet-control-attribution {
+  background: var(--bg-secondary) !important;
+  color: var(--text-muted) !important;
+  font-size: 10px !important;
+}
+
+.leaflet-control-attribution a {
+  color: var(--text-secondary) !important;
+}
+
+.leaflet-popup-content-wrapper,
+.leaflet-popup-tip {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+}
+
+.leaflet-popup-content {
+  margin: var(--space-3);
+  font-family: var(--font-sans);
+}
+
+.leaflet-popup-close-button {
+  color: var(--text-muted) !important;
+}
+
+.map-popup strong {
+  display: block;
+  margin-bottom: var(--space-1);
+  font-size: var(--text-sm);
+  font-weight: 500;
+}
+
+.map-popup div {
+  font-size: var(--text-xs);
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+}
+
+.map-popup-note {
+  margin-top: var(--space-1);
+  color: var(--accent-orange) !important;
+  font-family: var(--font-sans) !important;
+}
+
+/* ===== RIGHT PANEL ===== */
+.right-panel {
+  width: 296px;
+  min-width: 296px;
+  background: var(--bg-secondary);
+  border-left: 1px solid var(--border-subtle);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.right-panel-header {
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.right-panel-header h3 {
+  font-size: var(--text-sm);
+  font-weight: 500;
+  letter-spacing: var(--tracking-tight);
+  color: var(--text-primary);
+}
+
+.right-panel-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-4);
+}
+
+/* The single most important fact on screen: flat, no container chrome. */
+.elapsed-stat {
+  margin-bottom: var(--space-5);
+}
+
+.elapsed-stat-value {
+  font-family: var(--font-mono);
+  font-size: var(--text-stat);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  color: var(--text-primary);
+}
+
+.elapsed-stat.warn .elapsed-stat-value {
+  color: var(--accent-orange);
+}
+
+.elapsed-stat.critical .elapsed-stat-value {
+  color: var(--accent-red);
+}
+
+.elapsed-stat-label {
+  margin-top: var(--space-1);
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+
+.panel-note {
+  padding: var(--space-3);
+  margin-bottom: var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  font-size: var(--text-xs);
+  line-height: 1.5;
+}
+
+.panel-note.warn {
+  background: var(--accent-orange-dim);
+  color: var(--accent-orange);
+}
+
+.info-card {
+  margin-bottom: var(--space-5);
+}
+
+.info-card-title {
+  font-size: var(--text-xs);
+  font-weight: 450;
+  color: var(--text-muted);
+  margin-bottom: var(--space-2);
+}
+
+.info-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-2) 0;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.info-row:last-child {
+  border-bottom: 0;
+}
+
+.info-label {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  flex-shrink: 0;
+}
+
+.info-value {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  color: var(--text-primary);
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+
+.info-value.critical {
+  color: var(--accent-red);
+}
+
+.info-value.warn {
+  color: var(--accent-orange);
+}
+
+.actions-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  height: 32px;
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  background: var(--bg-tertiary);
+  transition: background var(--transition), border-color var(--transition);
+}
+
+.action-btn:hover {
+  background: var(--bg-card-hover);
+}
+
+.action-btn.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.action-btn.primary:hover {
+  filter: brightness(1.08);
+}
+
+.action-btn.resolve {
+  background: transparent;
+  color: var(--text-secondary);
+}
+
+.action-btn.resolve:hover {
+  color: var(--accent-green);
+  border-color: var(--accent-green);
+}
+
+/* ===== ALERT PROMINENCE ===== */
+/* Present in the DOM at every width so a resize never remounts them; the phone layout at
+   the bottom of this file is the only place they render. Declared before the media block
+   because they share its specificity — source order decides. */
+.mobile-bar,
+.sheet-grabber {
+  display: none;
+}
+
+/* Page-level alarm. pointer-events:none is load-bearing: this sits over the whole app,
+   including the Resolve button. */
+.alert-vignette {
+  position: fixed;
+  inset: 0;
+  z-index: 1500;
+  pointer-events: none;
+  box-shadow:
+    inset 0 0 0 3px var(--accent-red),
+    inset 0 0 90px -10px var(--accent-red);
+  animation: alert-breathe 1.2s ease-in-out infinite;
+}
+
+/* 0% and 100% are both the full-strength state on purpose. The reduced-motion rule near
+   the end of this file collapses every animation to a single 0.01ms iteration, which parks
+   the element on its final keyframe — so the final keyframe has to be the one that still
+   reads as an alarm. A cue that existed only mid-animation would simply vanish there. */
+@keyframes alert-breathe {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.alert-banner {
+  position: absolute;
+  top: var(--space-3);
+  left: 50%;
+  transform: translateX(-50%);
+  /* Above Leaflet's own controls, which sit at 400-1000 in this container. */
+  z-index: 1100;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  max-width: min(520px, calc(100% - 24px));
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  background: var(--accent-red);
+  color: #fff;
+  box-shadow: var(--shadow-md);
+}
+
+.alert-banner-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.alert-banner strong {
+  font-size: var(--text-base);
+  font-weight: 600;
+  letter-spacing: var(--tracking-tight);
+}
+
+.alert-banner-device {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  opacity: 0.9;
+  overflow-wrap: anywhere;
+}
+
+.alert-banner-ack {
+  flex-shrink: 0;
+  height: 26px;
+  padding: 0 var(--space-3);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  border-radius: var(--radius-sm);
+  color: #fff;
+  font-size: var(--text-xs);
+  font-weight: 500;
+  transition: background var(--transition);
+}
+
+.alert-banner-ack:hover {
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.alert-banner-pulse {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #fff;
+  flex-shrink: 0;
+  animation: alert-breathe 1.2s ease-in-out infinite;
+}
+
+/* The card for the alert that is currently screaming, so the list agrees with the map. */
+.incident-card.alerting {
+  border-color: var(--accent-red);
+  box-shadow: inset 2px 0 0 var(--accent-red);
+}
+
+/* The recovery chip for a browser that refused to make a sound. Coloured as a warning
+   rather than an alarm — nothing is wrong with the vest, only with this tab. */
+.nav-btn-wide.alert-blocked {
+  border-color: var(--accent-orange);
+  color: var(--accent-orange);
+  background: var(--accent-orange-dim);
+}
+
+/* ===== TOASTS ===== */
+/* Bottom-right, not top-right. Anchored to the top it sat underneath the 48px nav and
+   across the Incident Command header — which is exactly the panel an alert has just
+   populated. The bottom corner is the one region of the layout nothing else occupies.
+   Column order means the newest toast lands closest to the corner. */
+.toast-container {
+  position: fixed;
+  bottom: var(--space-4);
+  right: var(--space-4);
+  z-index: 2000;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.toast {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  min-width: 280px;
+  max-width: 360px;
+  padding: var(--space-3);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  background: var(--bg-secondary);
+  box-shadow: var(--shadow-md);
+  opacity: 0;
+  /* Slides up out of the bottom-right corner it is anchored to. */
+  transform: translateY(6px);
+  transition: opacity var(--transition), transform var(--transition);
+}
+
+.toast.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.toast.hiding {
+  opacity: 0;
+  transform: translateY(6px);
+}
+
+.toast-dot {
+  width: 6px;
+  height: 6px;
+  margin-top: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: var(--accent-red);
+}
+
+.toast-dot.success {
+  background: var(--accent-green);
+}
+
+/* The default toast is a status message; this one is the alarm. Across a room the two must
+   not look alike, so the difference is field colour and rule weight, not just the dot. */
+.toast.critical {
+  border-color: var(--accent-red);
+  border-left-width: 4px;
+  /* Must be opaque. --accent-red-dim is a translucent rgba meant to tint a surface that is
+     already there; used as a background on a floating element it let the nav and the panel
+     underneath read straight through the alarm. color-mix bakes the same tint into an
+     opaque colour, and the plain declaration above it is the fallback. */
+  background: var(--bg-secondary);
+  background: color-mix(in srgb, var(--accent-red) 12%, var(--bg-secondary));
+}
+
+.toast.critical .toast-title {
+  font-size: var(--text-base);
+  font-weight: 600;
+  color: var(--accent-red);
+}
+
+.toast.critical .toast-dot {
+  width: 8px;
+  height: 8px;
+  animation: alert-breathe 1.2s ease-in-out infinite;
+}
+
+.toast-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.toast-title {
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.toast-message {
+  margin-top: 2px;
+  font-size: var(--text-xs);
+  color: var(--text-secondary);
+  overflow-wrap: anywhere;
+}
+
+.toast-message span {
+  font-family: var(--font-mono);
+  color: var(--text-primary);
+}
+
+.toast-close {
+  color: var(--text-muted);
+  padding: 2px;
+  border-radius: var(--radius-sm);
+  transition: color var(--transition);
+}
+
+.toast-close:hover {
+  color: var(--text-primary);
+}
+
+/* ===== SETTINGS MODAL ===== */
+/* Above .toast-container (2000): a toast raised by saving must not cover the dialog
+   that raised it. */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 2100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-4);
+  background: rgba(0, 0, 0, 0.55);
+}
+
+.modal {
+  width: 100%;
+  max-width: 460px;
+  max-height: 90vh;
+  overflow-y: auto;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.modal-header h3 {
+  font-size: var(--text-base);
+  font-weight: 600;
+  letter-spacing: var(--tracking-tight);
+  color: var(--text-primary);
+}
+
+.modal-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: none;
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  background: transparent;
+  transition: background var(--transition), color var(--transition);
+}
+
+.modal-close:hover {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+.modal-body {
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4);
+}
+
+.modal-section + .modal-section {
+  border-top: 1px solid var(--border-subtle);
+}
+
+.modal-section h4 {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.modal-hint {
+  font-size: var(--text-xs);
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+
+.field-row {
+  display: flex;
+  gap: var(--space-3);
+}
+
+.field {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.field.narrow {
+  flex: 0 0 88px;
+}
+
+.field > span {
+  font-size: var(--text-xs);
+  color: var(--text-secondary);
+}
+
+.field input,
+.field select {
+  width: 100%;
+  height: 30px;
+  padding: 0 var(--space-2);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  background: var(--bg-input);
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  outline: none;
+  transition: border-color var(--transition);
+}
+
+.field select {
+  font-family: var(--font-sans);
+}
+
+.field input:focus,
+.field select:focus {
+  border-color: var(--accent);
+}
+
+.field input[aria-invalid="true"] {
+  border-color: var(--accent-red);
+}
+
+.field-error {
+  font-size: var(--text-xs);
+  color: var(--accent-red);
+}
+
+.modal-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.modal-actions .action-btn {
+  flex: 1;
+  min-width: 108px;
+  padding: 0 var(--space-3);
+}
+
+.modal-actions .action-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.modal-actions .action-btn.primary:disabled:hover {
+  filter: none;
+}
+
+/* ===== ACCESSIBILITY ===== */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+  border-radius: var(--radius-sm);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  /* The rule above parks each animation on its final keyframe, and alert-breathe's is
+     written at full strength for exactly that reason. Stated outright here so a later
+     keyframe edit cannot silently leave the alarm invisible for these users. */
+  .alert-vignette,
+  .alert-banner-pulse,
+  .toast.critical .toast-dot {
+    opacity: 1;
+  }
+
+  .marker-ring {
+    opacity: 0.55;
+  }
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 1200px) {
+  .right-panel {
+    width: 272px;
+    min-width: 272px;
+  }
+}
+
+@media (max-width: 1000px) {
+  .left-sidebar {
+    width: 248px;
+    min-width: 248px;
+  }
+
+  .right-panel {
+    width: 256px;
+    min-width: 256px;
+  }
+}
+
+/* ===== PHONE: MAP-FIRST WITH AN ALERT SHEET =====
+   A full-bleed map with everything else floating on top of it. Nothing scrolls the page —
+   the old stacked-column layout did, which meant the elapsed timer, the one number that
+   matters, could be scrolled off screen while an incident was open. */
+@media (max-width: 900px) {
+  html,
+  body,
+  #root {
+    height: 100%;
+    overflow: hidden;
+  }
+
+  .dashboard-root {
+    /* dvh, not vh: iOS Safari's collapsing URL bar makes vh taller than the visible area,
+       which would push the bottom bar under the chrome. */
+    height: 100dvh;
+    overflow: hidden;
+  }
+
+  .main-content {
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* The map owns everything under the nav. It is never resized and never display:none'd —
+     every panel floats over it — so Leaflet never has to re-measure, and can never be
+     invalidated at 0x0, which is the failure that leaves grey tiles behind permanently. */
+  .center-panel {
+    position: absolute;
+    inset: 0;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .map-container {
+    height: 100%;
+    min-height: 0;
+  }
+
+  /* Stacking order below is deliberate and Leaflet sets the floor: its .leaflet-top /
+     .leaflet-bottom control corners are z-index 1000, so anything meant to cover the map
+     has to clear that. Getting this wrong shows up as the zoom buttons bleeding through an
+     opaque list, or the tile attribution painting over the bottom bar.
+       1000  Leaflet controls
+       1050  floating status chips
+       1100  list panes
+       1200  alert sheet
+       1300  bottom bar
+       1400  alert banner (an alarm outranks everything it covers) */
+
+  /* Status chips float instead of occupying a bar that steals map height. */
+  .map-status-bar {
+    position: absolute;
+    top: var(--space-2);
+    left: var(--space-2);
+    right: var(--space-2);
+    z-index: 1050;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    padding: 0;
+    background: transparent;
+    border: 0;
+    /* The bar spans the map; only its chips should intercept a pan. */
+    pointer-events: none;
+  }
+
+  .map-status-bar > * {
+    pointer-events: auto;
+  }
+
+  .status-chip,
+  .coord-display,
+  .copy-btn {
+    border: 1px solid var(--border-color);
+    background: var(--bg-secondary);
+  }
+
+  .coord-display {
+    padding: 0 var(--space-2);
+    line-height: 24px;
+    border-radius: var(--radius-sm);
+  }
+
+  /* The legend duplicates what the sheet already says and costs a corner of the map. */
+  .map-legend {
+    display: none;
+  }
+
+  /* List panes cover the map opaquely rather than replacing it in the flow. */
+  .left-sidebar {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    min-width: 0;
+    border: 0;
+    z-index: 1100;
+    background: var(--bg-primary);
+    padding-bottom: calc(var(--mobile-bar-h) + env(safe-area-inset-bottom));
+  }
+
+  /* The banner floats over the list panes too, so the search field and tabs move down out
+     from under it. Acknowledging puts them back. */
+  .main-content[data-alerting="true"] .left-sidebar {
+    padding-top: 60px;
+  }
+
+  /* visibility, never display: an ancestor of #map going display:none is what makes
+     Leaflet cache a zero size. The map is not inside this element, but keeping the two
+     hide mechanisms consistent stops anyone from "simplifying" the wrong one later. */
+  .left-sidebar[data-hidden="true"] {
+    visibility: hidden;
+    pointer-events: none;
+  }
+
+  .sidebar-list {
+    overflow-y: auto;
+  }
+
+  /* ===== ALERT SHEET ===== */
+  .right-panel {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: calc(var(--mobile-bar-h) + env(safe-area-inset-bottom));
+    width: 100%;
+    min-width: 0;
+    height: min(72dvh, 600px);
+    z-index: 1200;
+    border: 1px solid var(--border-color);
+    border-bottom: 0;
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    box-shadow: var(--shadow-md);
+    transform: translateY(calc(100% - var(--sheet-peek)));
+    transition: transform 220ms cubic-bezier(0.32, 0.72, 0, 1);
+    overscroll-behavior: contain;
+  }
+
+  .right-panel.open {
+    transform: translateY(0);
+  }
+
+  /* During a drag the inline transform owns the frame; a transition would lag it. */
+  .right-panel.dragging {
+    transition: none;
+  }
+
+  /* The peek state has to answer both of the operator's questions at once: how long has
+     this person been down, and how do I close it out. So the actions climb above the info
+     cards on the phone — reading the fix age is a scroll away, resolving is not. Keep
+     --sheet-peek tall enough to clear the elapsed stat plus this group. */
+  .right-panel-body {
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .right-panel-body .elapsed-stat {
+    order: -2;
+  }
+
+  .right-panel-body .actions-group {
+    order: -1;
+  }
+
+  .sheet-grabber {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 26px;
+    flex-shrink: 0;
+    /* Without this the browser claims the gesture for scrolling and pointermove never
+       fires. It is the single most common reason a sheet drag "does nothing" on iOS. */
+    touch-action: none;
+    cursor: grab;
+  }
+
+  .sheet-grabber-bar {
+    width: 36px;
+    height: 4px;
+    border-radius: 2px;
+    background: var(--border-color);
+  }
+
+  /* ===== BOTTOM BAR ===== */
+  .mobile-bar {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1300;
+    display: flex;
+    height: calc(var(--mobile-bar-h) + env(safe-area-inset-bottom));
+    padding-bottom: env(safe-area-inset-bottom);
+    background: var(--bg-secondary);
+    border-top: 1px solid var(--border-color);
+  }
+
+  .mobile-bar button {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    min-height: 44px;
+    font-size: var(--text-xs);
+    color: var(--text-secondary);
+  }
+
+  .mobile-bar button[aria-current="true"] {
+    color: var(--text-primary);
+    font-weight: 500;
+    box-shadow: inset 0 2px 0 var(--accent);
+  }
+
+  .mobile-bar-count {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .mobile-bar-count.critical {
+    color: var(--accent-red);
+  }
+
+  /* Fixed rather than absolute: on the phone the banner has to clear the list panes, which
+     are themselves absolutely positioned siblings of the map. */
+  .alert-banner {
+    position: fixed;
+    top: calc(48px + var(--space-2));
+    left: var(--space-2);
+    right: var(--space-2);
+    transform: none;
+    max-width: none;
+    z-index: 1400;
+  }
+
+  /* Touch targets */
+  .nav-btn,
+  .copy-btn,
+  .history-map-btn,
+  .action-btn,
+  .sidebar-tab {
+    min-height: 36px;
+  }
+
+  /* Top on the phone, not bottom: the bottom belongs to the sheet and the nav bar. Cleared
+     past the alert banner, which occupies the top of the screen whenever a toast worth
+     reading is on screen — overlapping the two made the alarm illegible. `bottom: auto`
+     releases the desktop anchor. */
+  .toast-container {
+    top: 112px;
+    bottom: auto;
+    left: var(--space-3);
+    right: var(--space-3);
+  }
+
+  .toast {
+    min-width: 0;
+    max-width: none;
+    width: 100%;
+  }
+}
+
+@media (max-width: 520px) {
+  .map-status-left,
+  .map-status-right {
+    flex-wrap: wrap;
+  }
+
+  .info-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+  }
+
+  .info-value {
+    text-align: left;
+  }
+
+  /* No .map-container height override here. Below 900px the map is absolutely positioned
+     and fills the viewport; giving it a vh height again would leave a gap under it. */
+
+  /* Side-by-side coordinate fields get too narrow to read a full decimal degree. */
+  .field-row {
+    flex-direction: column;
+  }
+
+  .field.narrow {
+    flex: 1;
+  }
+}
+
+/* OSM tiles are bright multicolour and fight a near-monochrome dark UI. Inverting and
+   rotating the hue turns them into a muted dark basemap without a keyed tile provider.
+   Markers and popups live in other panes, so they keep their real colours. */
+[data-theme="dark"] .leaflet-tile-pane {
+  filter: invert(1) hue-rotate(180deg) brightness(0.92) contrast(0.88) saturate(0.7);
+}

@@ -1,0 +1,24 @@
+# Build output
+.pio/
+dist/
+dist-ssr/
+*.tsbuildinfo
+
+# Dependencies
+node_modules/
+
+# Secrets — the *.example files are committed, these are not
+secrets.ini
+.env
+.env.*.local
+.dev.vars
+
+# Editor / tooling / OS
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.claude/
+.eslintcache
+.DS_Store
+*.swp
+*.log
